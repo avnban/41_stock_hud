@@ -1,0 +1,111 @@
+<project name="Stock" basedir=".">
+	<property file="build.properties"/>
+<target name="all" depends="mail_before_build_creation,package,mail_after_build_creation,mail_before_build_deploy,copy,mail_after_build_deploy" >
+  </target>
+
+<!-- This target send mail before creating build -->
+<target name="mail_before_build_creation">
+	<echo message="Sending mail before build creation..."/>
+	<mail mailhost="${mail_loc}" mailport="25" tolist="${to_list}" cclist="${cc_list}" message="We are going to create Stock build." subject="Going to create Stock build">
+		<from address="${from_addr}"/>
+	</mail>
+</target>
+
+<!-- This target send mail after creating build -->
+<target name="mail_after_build_creation">
+	<echo message="Sending mail after build creation..."/>
+	<mail mailhost="${mail_loc}" tolist="${to_list}" cclist="${cc_list}" message="Build was successfully created" subject="Build created successfully">
+		<from address="${from_addr}"/>
+	</mail>
+</target>
+
+<!-- This target send mail before creating build -->
+<target name="mail_before_build_deploy">
+	<echo message="Sending mail before build deployment..."/>
+	<mail mailhost="${mail_loc}" tolist="${to_list}" cclist="${cc_list}" message="We are going to deploy Stock build." subject="Going to deploy Stock build">
+		<from address="${from_addr}"/>
+	</mail>
+</target>
+
+<!-- This target deploys stock.war in Jboss server -->
+<target name="clean" description="Deletes the Web Application's--$(app.name) war directory and war file">
+    <echo message="Deleting ${app.name}'s war directory and war file ..."/>
+		<delete file="${build_loc}/stock.war"/>
+        <delete file="${webapp_loc}/stock.war"/>
+		<delete file="${webapp_loc}/stock"/>
+</target>
+<target name="prepare" description="Creates the Web Application's war directory" depends="clean">
+     <echo message="Creating stock war directory ..."/>
+     <mkdir dir="${build_loc}/war/WEB-INF"/>
+     <mkdir dir="${build_loc}/war/WEB-INF/classes"/>
+</target>
+
+<target name="build" description="Builds the Web Application" depends="prepare">
+     <echo message="Building stock ..."/>
+     <javac srcdir="${base_loc}/src" destdir="${build_loc}/war/WEB-INF/classes" includeantruntime="false">
+          <include name="*.java"/>                
+     </javac>
+
+           <copy todir="${build_loc}/war/WEB-INF">
+                <fileset dir="${base_loc}/web/WEB-INF">
+                    <include name="web.xml"/>
+                </fileset>
+            </copy>
+            <copy todir="${build_loc}/war/WEB-INF/lib">
+                <fileset dir="${base_loc}/web/WEB-INF/lib">
+                    <include name="*"/>
+                </fileset>
+            </copy>
+            <copy todir="${build_loc}/war/META-INF">
+                <fileset dir="${base_loc}/web/META-INF">
+                    <include name="*"/>
+                </fileset>
+            </copy>
+            <copy todir="${build_loc}/war">
+                <fileset dir="${base_loc}/web">
+                             <include name="**/*.html"/>
+                    <include name="**/*.jsp"/>
+                    <include name="**/*.txt"/>
+                    <include name="**/*.zip"/>
+                    <include name="**/*.sit"/>
+                    <include name="**/*.gif"/>
+                    <include name="**/*.jpg"/>
+                    <include name="**/*.properties"/>
+					<include name="**/*.bat"/>
+                </fileset>
+            </copy>
+</target>
+    <target name="num" depends="build">
+	       	<buildnumber file="${num_file}/mybuild.number"/>
+    </target>
+
+        <target name="package" description="Packages the Web Application's web archive file" depends="num">
+            <echo message="Packaging stock war file ..."/>
+            <jar jarfile="${build_loc}/stock.war">
+                <fileset dir="${build_loc}/war" includes="**"/>
+            </jar>
+         </target>
+
+
+
+	<target name="copy" description="copy war file to tomcat webapps">
+        <copyfile src="${build_loc}/stock.war" dest="${webapp_loc}/stock.war"/>
+         </target>
+		 
+<!-- This target send mail before creating build -->
+<target name="mail_after_build_deploy">
+<echo message="Sending mail after build deployment.."/>
+<mail mailhost="${mail_loc}" tolist="${to_list}" cclist="${cc_list}" message="Build was successfully deployed" subject="Build deployedsuccessfully">
+ <from address="${from_addr}"/>
+</mail>
+</target>
+<!-- This target send mail before creating build -->
+<target name="mail_build_failure">
+<echo message="Sending mail for build creation failure..."/>
+<mail mailhost="${mail_loc}" tolist="${to_list}" cclist="${cc_list}" message="Build creation was failed" subject="Failed build creation">
+<from address="${from_addr}"/>
+</mail>
+</target>
+
+</project>
+
